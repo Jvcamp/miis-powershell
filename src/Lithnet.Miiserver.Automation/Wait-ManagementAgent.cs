@@ -12,18 +12,18 @@ namespace Lithnet.Miiserver.Automation
     {
         protected override void ProcessRecord()
         {
-            RunDetails last = this.MAInstance.GetLastRun();
-
-            while (!this.MAInstance.IsIdle())
+            using (RunDetails last = this.MAInstance.GetLastRun())
             {
-                this.UpdateProgress(true, last.RunNumber);
-                System.Threading.Thread.Sleep(5000);
+                while (!this.MAInstance.IsIdle())
+                {
+                    this.UpdateProgress(true, last.RunNumber);
+                    System.Threading.Thread.Sleep(5000);
+                }
+                ProgressRecord r = new ProgressRecord(0, this.MAInstance.Name, string.Format("Finished: {0}", last.RunProfileName));
+                r.RecordType = ProgressRecordType.Completed;
+                r.PercentComplete = 100;
+                this.WriteProgress(r);
             }
-
-            ProgressRecord r = new ProgressRecord(0, this.MAInstance.Name, string.Format("Finished: {0}", last.RunProfileName));
-            r.RecordType = ProgressRecordType.Completed;
-            r.PercentComplete = 100;
-            this.WriteProgress(r);
         }
     }
 }

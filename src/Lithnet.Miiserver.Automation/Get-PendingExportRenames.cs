@@ -19,21 +19,24 @@ namespace Lithnet.Miiserver.Automation
 
         protected override void ProcessRecord()
         {
-            foreach (var item in this.MAInstance.GetPendingExports(false, true, false))
+            using (CSObjectEnumerator pendingExportRenames = this.MAInstance.GetPendingExports(false, true, false))
             {
-                if (!string.Equals(item.DN, item.UnappliedExportHologram.DN, StringComparison.OrdinalIgnoreCase))
+                foreach (var item in pendingExportRenames)
                 {
-                    if (this.Delta.IsPresent)
+                    if (!string.Equals(item.DN, item.UnappliedExportHologram.DN, StringComparison.OrdinalIgnoreCase))
                     {
-                        this.WriteObject(item.UnappliedExportDelta);
-                    }
-                    else if (this.Hologram.IsPresent)
-                    {
-                        this.WriteObject(item.UnappliedExportHologram);
-                    }
-                    else
-                    {
-                        this.WriteObject(item);
+                        if (this.Delta.IsPresent)
+                        {
+                            this.WriteObject(item.UnappliedExportDelta);
+                        }
+                        else if (this.Hologram.IsPresent)
+                        {
+                            this.WriteObject(item.UnappliedExportHologram);
+                        }
+                        else
+                        {
+                            this.WriteObject(item);
+                        }
                     }
                 }
             }

@@ -20,11 +20,17 @@ namespace Lithnet.Miiserver.Automation
         {
             if (this.Item != null)
             {
-                this.WriteObject(SyncServer.GetRunDetail(this.Item));
+                using (RunDetails syncrundetail = SyncServer.GetRunDetail(this.Item))
+                {
+                    this.WriteObject(syncrundetail);
+                }
             }
             else
             {
-                this.WriteObject(this.MAInstance.GetRunDetail(this.RunNumber));
+                using (RunDetails marundetail = this.MAInstance.GetRunDetail(this.RunNumber))
+                {
+                    this.WriteObject(marundetail);
+                }
             }
         }
     }

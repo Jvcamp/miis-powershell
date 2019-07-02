@@ -20,11 +20,16 @@ namespace Lithnet.Miiserver.Automation
 
             if (this.Type.HasValue)
             {
-                results = this.MAInstance.GetDisconnectors(this.Type.Value);
+                using (CSObjectEnumerator disconnectors = this.MAInstance.GetDisconnectors(this.Type.Value))
+                {
+                    results = disconnectors;
+                }
             }
             else
             {
-                results = this.MAInstance.GetDisconnectors();
+                using (CSObjectEnumerator disconnectors = this.MAInstance.GetDisconnectors()) {
+                    results = disconnectors;
+                }
             }
 
             foreach (var item in results)

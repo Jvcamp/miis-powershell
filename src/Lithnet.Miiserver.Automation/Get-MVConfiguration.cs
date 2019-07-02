@@ -12,7 +12,10 @@ namespace Lithnet.Miiserver.Automation
     {
         protected override void ProcessRecord()
         {
-            this.WriteObject(SyncServer.GetMVConfiguration());
+            using (MVConfiguration mvconfig = SyncServer.GetMVConfiguration())
+            {
+                this.WriteObject(mvconfig);
+            }
         }
     }
 }

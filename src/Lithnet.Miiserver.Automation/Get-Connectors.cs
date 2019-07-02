@@ -20,11 +20,17 @@ namespace Lithnet.Miiserver.Automation
 
             if (this.Type.HasValue)
             {
-                results = this.MAInstance.GetConnectors(this.Type.Value);
+                using (CSObjectEnumerator connectors = this.MAInstance.GetConnectors(this.Type.Value))
+                {
+                    results = connectors;
+                }
             }
             else
             {
-                results = this.MAInstance.GetConnectors();
+                using (CSObjectEnumerator connectors = this.MAInstance.GetConnectors())
+                {
+                    results = connectors;
+                }
             }
 
             foreach (var item in results)

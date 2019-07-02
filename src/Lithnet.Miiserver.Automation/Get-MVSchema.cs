@@ -15,17 +15,21 @@ namespace Lithnet.Miiserver.Automation
 
         protected override void ProcessRecord()
         {
-            DsmlSchema schema = SyncServer.GetMVSchema();
-
-            if (string.IsNullOrWhiteSpace(this.ObjectType))
+            using (DsmlSchema schema = SyncServer.GetMVSchema())
             {
-                this.WriteObject(schema);
-            }
-            else
-            {
-                if (schema.ObjectClasses.ContainsKey(this.ObjectType))
+                if (string.IsNullOrWhiteSpace(this.ObjectType))
                 {
-                    this.WriteObject(schema.ObjectClasses[this.ObjectType]);
+                    this.WriteObject(schema);
+                }
+                else
+                {
+                    if (schema.ObjectClasses.ContainsKey(this.ObjectType))
+                    {
+                        using (DsmlObjectClass objectclasses = schema.ObjectClasses[this.ObjectType])
+                        {
+                            this.WriteObject(objectclasses);
+                        }
+                    }
                 }
             }
         }

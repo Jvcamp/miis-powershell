@@ -22,7 +22,10 @@ namespace Lithnet.Miiserver.Automation
 
         protected override void ProcessRecord()
         {
-            this.WriteObject(this.CSObject.Sync(this.Commit.IsPresent, this.Delta.IsPresent));
+            using (SyncPreview syncpv = this.CSObject.Sync(this.Commit.IsPresent, this.Delta.IsPresent))
+            {
+                this.WriteObject(syncpv);
+            }
         }
     }
 }

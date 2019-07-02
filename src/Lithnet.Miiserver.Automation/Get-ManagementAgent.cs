@@ -27,7 +27,10 @@ namespace Lithnet.Miiserver.Automation
             }
             else
             {
-                this.WriteObject(MiisController.GetManagementAgent(this.Name, this.Reload.IsPresent));
+                using (ManagementAgent ma = MiisController.GetManagementAgent(this.Name, this.Reload.IsPresent))
+                {
+                    this.WriteObject(ma);
+                }
             }
         }
     }

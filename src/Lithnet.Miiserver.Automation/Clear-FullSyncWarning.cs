@@ -30,7 +30,9 @@ namespace Lithnet.Miiserver.Automation
                 {
                     if (this.ma == null)
                     {
-                        this.ma = MiisController.GetManagementAgent(this.MAName, false);
+                        using (ManagementAgent ma = MiisController.GetManagementAgent(this.MAName, false)) {
+                            this.ma = ma;
+                        }
                     }
 
                     return this.ma;

@@ -24,90 +24,97 @@ namespace Lithnet.Miiserver.Automation
                 return;
             }
 
-            RunDetails s = this.MAInstance.GetRunDetail(runNumber);
-
-            if (s == null)
+            using (RunDetails s = this.MAInstance.GetRunDetail(runNumber))
             {
-                return;
-            }
-
-            if (this.runProfile == null)
-            {
-                this.runProfile = this.MAInstance.RunProfiles[s.RunProfileName];
-                this.stats = this.MAInstance.Statistics;
-            }
-
-            StepDetails d = s.StepDetails.FirstOrDefault();
-
-            if (d == null)
-            {
-                return;
-            }
-
-            string description;
-
-            if (pending)
-            {
-                description = $"Waiting for {this.MAInstance.Name} to finish {s.RunProfileName}";
-            }
-            else
-            {
-                description = this.MAInstance.Name;
-            }
-
-            if (this.lastStepNumber == 0 || this.lastStepNumber != d.StepNumber)
-            {
-                this.lastStepNumber = d.StepNumber;
-                this.countHistory = new FixedSizedQueue<ProgressItem>(30);
-            }
-
-            ProgressRecord r = new ProgressRecord(0, description, string.Format(
-                $"Performing {this.runProfile.Name} step {d.StepNumber}/{this.runProfile.RunSteps.Count}: {d.StepDefinition.StepTypeDescription}"))
-            {
-                RecordType = ProgressRecordType.Processing
-            };
-
-            int processed;
-            double total;
-            int remaining = 0;
-            if (this.GetCounts(d, out processed, out total))
-            {
-                int percentComplete = (int)((processed / total) * 100);
-                r.PercentComplete = percentComplete > 100 ? 0 : percentComplete;
-                remaining = (int)total - processed;
-            }
-
-            if (processed > 0)
-            {
-                double objpersec = 0;
-
-                int changedCount;
-                TimeSpan? timespan;
-
-                this.GetCountDiff(processed, out changedCount, out timespan);
-
-                if (changedCount > 0 && timespan.HasValue)
+                if (s == null)
                 {
-                    objpersec = changedCount / timespan.Value.TotalSeconds;
+                    return;
                 }
 
-                if (remaining > 0 && objpersec > 0)
+
+                if (this.runProfile == null)
                 {
-                    int remainingSeconds = (int)(remaining / objpersec);
-                    r.SecondsRemaining = remainingSeconds > 0 ? remainingSeconds : 0;
+                    this.runProfile = this.MAInstance.RunProfiles[s.RunProfileName];
+                    using (MAStatistics stats = this.MAInstance.Statistics)
+                    {
+                        this.stats = stats;
+                    }
                 }
 
-                if (objpersec > 0 && !double.IsInfinity(objpersec))
+                using (StepDetails d = s.StepDetails.FirstOrDefault())
                 {
-                    r.StatusDescription += $" ({objpersec:N2} obj/sec)";
+                    if (d == null)
+                    {
+                        return;
+                    }
+
+
+                    string description;
+
+                    if (pending)
+                    {
+                        description = $"Waiting for {this.MAInstance.Name} to finish {s.RunProfileName}";
+                    }
+                    else
+                    {
+                        description = this.MAInstance.Name;
+                    }
+
+                    if (this.lastStepNumber == 0 || this.lastStepNumber != d.StepNumber)
+                    {
+                        this.lastStepNumber = d.StepNumber;
+                        this.countHistory = new FixedSizedQueue<ProgressItem>(30);
+                    }
+
+                    ProgressRecord r = new ProgressRecord(0, description, string.Format(
+                        $"Performing {this.runProfile.Name} step {d.StepNumber}/{this.runProfile.RunSteps.Count}: {d.StepDefinition.StepTypeDescription}"))
+                    {
+                        RecordType = ProgressRecordType.Processing
+                    };
+
+                    int processed;
+                    double total;
+                    int remaining = 0;
+                    if (this.GetCounts(d, out processed, out total))
+                    {
+                        int percentComplete = (int)((processed / total) * 100);
+                        r.PercentComplete = percentComplete > 100 ? 0 : percentComplete;
+                        remaining = (int)total - processed;
+                    }
+
+                    if (processed > 0)
+                    {
+                        double objpersec = 0;
+
+                        int changedCount;
+                        TimeSpan? timespan;
+
+                        this.GetCountDiff(processed, out changedCount, out timespan);
+
+                        if (changedCount > 0 && timespan.HasValue)
+                        {
+                            objpersec = changedCount / timespan.Value.TotalSeconds;
+                        }
+
+                        if (remaining > 0 && objpersec > 0)
+                        {
+                            int remainingSeconds = (int)(remaining / objpersec);
+                            r.SecondsRemaining = remainingSeconds > 0 ? remainingSeconds : 0;
+                        }
+
+                        if (objpersec > 0 && !double.IsInfinity(objpersec))
+                        {
+                            r.StatusDescription += $" ({objpersec:N2} obj/sec)";
+                        }
+                    }
+                    else
+                    {
+                        r.StatusDescription += " (waiting for MA to start)";
+                    }
+
+                    this.WriteProgress(r);
                 }
             }
-            else
-            {
-                r.StatusDescription += " (waiting for MA to start)";
-            }
-
-            this.WriteProgress(r);
         }
 
         private bool GetCounts(StepDetails d, out int processed, out double total)

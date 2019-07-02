@@ -15,14 +15,17 @@ namespace Lithnet.Miiserver.Automation
 
         protected override void ProcessRecord()
         {
-           
+
             if (this.Count > 0)
             {
                 this.WriteObject(this.MAInstance.GetRunHistory(this.Count), true);
             }
             else
             {
-                this.WriteObject(this.MAInstance.GetLastRun(), true);
+                using (RunDetails lastRun = this.MAInstance.GetLastRun())
+                {
+                    this.WriteObject(lastRun, true);
+                }
             }
         }
     }

@@ -73,7 +73,9 @@ namespace Lithnet.Miiserver.Automation
         private void GetByPipeLineQuery()
         {
             MVQuery q = new MVQuery();
-            q.ObjectType = this.GetObjectType();
+            using (DsmlObjectClass objecttype = this.GetObjectType()) {
+                q.ObjectType = objecttype;
+            }
 
             if (this.collectedQueries.Count > 0)
             {
@@ -84,35 +86,51 @@ namespace Lithnet.Miiserver.Automation
             }
 
             q.CollationOrder = this.Collation ?? q.CollationOrder;
-
-            this.WriteObject(SyncServer.GetMVObjects(q), true);
+            using (MVObjectCollection mvobjects = SyncServer.GetMVObjects(q)) {
+                this.WriteObject(mvobjects, true);
+            }
         }
 
         private void GetByGuid()
         {
-            this.WriteObject(SyncServer.GetMVObject(this.ID));
+            using (MVObject mvobject = SyncServer.GetMVObject(this.ID))
+            {
+                this.WriteObject(mvobject);
+            }
         }
 
         private void GetByKey()
         {
             MVAttributeQuery a = new MVAttributeQuery();
-            a.Attribute = this.GetAttribute();
-            a.Operator = MVSearchFilterOperator.Equals;
-            a.Value = this.Value;
+            using (DsmlAttribute attr = this.GetAttribute()) {
+                a.Attribute = attr;
+                a.Operator = MVSearchFilterOperator.Equals;
+                a.Value = this.Value;
+            }
 
             MVQuery q = new MVQuery();
-            q.ObjectType = this.GetObjectType();
-            q.QueryItems.Add(a);
+            using (DsmlObjectClass objecttype = this.GetObjectType()) {
+                q.ObjectType = objecttype;
+                q.QueryItems.Add(a);
+            }
 
-            this.WriteObject(SyncServer.GetMVObjects(q), true);
+            using (MVObjectCollection mvobjects = SyncServer.GetMVObjects(q))
+            {
+                this.WriteObject(mvobjects, true);
+            }
         }
 
         private void GetByObjectType()
         {
             MVQuery q = new MVQuery();
-            q.ObjectType = this.GetObjectType();
+            using (DsmlObjectClass objecttype = this.GetObjectType())
+            {
+                q.ObjectType = objecttype;
+            }
 
-            this.WriteObject(SyncServer.GetMVObjects(q), true);
+            using (MVObjectCollection mvobjects = SyncServer.GetMVObjects(q)) {
+                this.WriteObject(mvobjects, true);
+            }
         }
 
         private DsmlObjectClass GetObjectType()
@@ -136,27 +154,29 @@ namespace Lithnet.Miiserver.Automation
 
         private DsmlAttribute GetAttribute()
         {
-            DsmlObjectClass objectClass = this.GetObjectType();
-            IReadOnlyDictionary<string, DsmlAttribute> attributesToSearch;
+            using (DsmlObjectClass objectClass = this.GetObjectType())
+            {
+                IReadOnlyDictionary<string, DsmlAttribute> attributesToSearch;
 
-            if (objectClass != null)
-            {
-                attributesToSearch = objectClass.Attributes;
-            }
-            else
-            {
-                attributesToSearch = MiisController.Schema.Attributes;
-            }
+                if (objectClass != null)
+                {
+                    attributesToSearch = objectClass.Attributes;
+                }
+                else
+                {
+                    attributesToSearch = MiisController.Schema.Attributes;
+                }
 
-            DsmlAttribute attribute;
+                DsmlAttribute attribute;
 
-            if (attributesToSearch.TryGetValue(this.Attribute, out attribute))
-            {
-                return attribute;
-            }
-            else
-            {
-                throw new ItemNotFoundException(string.Format("Attribute {0} does not exist{1}{2}", this.Attribute, this.ObjectType == null ? string.Empty : " on object type ", this.ObjectType ?? string.Empty));
+                if (attributesToSearch.TryGetValue(this.Attribute, out attribute))
+                {
+                    return attribute;
+                }
+                else
+                {
+                    throw new ItemNotFoundException(string.Format("Attribute {0} does not exist{1}{2}", this.Attribute, this.ObjectType == null ? string.Empty : " on object type ", this.ObjectType ?? string.Empty));
+                }
             }
         }
     }

@@ -28,15 +28,17 @@ namespace Lithnet.Miiserver.Automation
         {
             if (reload || !maCache.ContainsKey(name))
             {
-                ManagementAgent ma =  ManagementAgent.GetManagementAgent(name);
+                using (ManagementAgent ma = ManagementAgent.GetManagementAgent(name))
+                {
 
-                if (!maCache.ContainsKey(name))
-                {
-                    maCache.Add(ma.Name, ma);
-                }
-                else
-                {
-                    maCache[ma.Name] = ma;
+                    if (!maCache.ContainsKey(name))
+                    {
+                        maCache.Add(ma.Name, ma);
+                    }
+                    else
+                    {
+                        maCache[ma.Name] = ma;
+                    }
                 }
             }
 
@@ -49,7 +51,9 @@ namespace Lithnet.Miiserver.Automation
             {
                 if (MiisController.schema == null)
                 {
-                    MiisController.schema = SyncServer.GetMVSchema();
+                    using (DsmlSchema mvschema = SyncServer.GetMVSchema()) {
+                        MiisController.schema = mvschema;
+                    }
                 }
 
                 return MiisController.schema;

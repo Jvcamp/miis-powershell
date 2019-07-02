@@ -26,24 +26,34 @@ namespace Lithnet.Miiserver.Automation
         {
             if (this.ID != Guid.Empty)
             {
-                this.WriteObject(this.MAInstance.GetCSObject(this.ID));
+                using(CSObject csobject = this.MAInstance.GetCSObject(this.ID)) {
+                    this.WriteObject(csobject);
+                }
                 return;
             }
             else if (!string.IsNullOrWhiteSpace(this.DN))
             {
                 if (this.IncludeSubTree.IsPresent)
                 {
-                    this.WriteObject(this.MAInstance.GetCSObjects(this.DN, true), true);
+                    using (CSObjectEnumerator csobjects = this.MAInstance.GetCSObjects(this.DN, true)) {
+                        this.WriteObject(csobjects, true);
+                    }
                 }
                 else
                 {
-                    this.WriteObject(this.MAInstance.GetCSObject(this.DN));
+                    using (CSObject csobject = this.MAInstance.GetCSObject(this.DN))
+                    {
+                        this.WriteObject(csobject);
+                    }
                 }
                 return;
             }
             else if (!string.IsNullOrWhiteSpace(this.Rdn))
             {
-                this.WriteObject(this.MAInstance.GetCSObjects(this.Rdn), true);
+                using (CSObjectEnumerator csobjects = this.MAInstance.GetCSObjects(this.Rdn))
+                {
+                    this.WriteObject(csobjects, true);
+                }
                 return;
             }
         }

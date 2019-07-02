@@ -11,8 +11,10 @@ namespace Lithnet.Miiserver.Automation
     public class GetMAStatistics : MATargetCmdlet
     {
         protected override void ProcessRecord()
-        {
-            this.WriteObject(this.MAInstance.Statistics);
+        {   using (MAStatistics stats = this.MAInstance.Statistics)
+            {
+                this.WriteObject(stats);
+            }
         }
     }
 }

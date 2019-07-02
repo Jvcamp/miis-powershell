@@ -19,7 +19,8 @@ namespace Lithnet.Miiserver.Automation
 
         protected override void ProcessRecord()
         {
-            foreach (var item in this.MAInstance.GetPendingImports(true, true, true))
+            using(CSObjectEnumerator pendingImports = this.MAInstance.GetPendingImports(true, true, true))
+            foreach (var item in pendingImports)
             {
                 if (this.Delta.IsPresent)
                 {

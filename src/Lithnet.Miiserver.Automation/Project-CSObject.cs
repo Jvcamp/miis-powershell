@@ -21,7 +21,10 @@ namespace Lithnet.Miiserver.Automation
         {
             if (MiisController.Schema.ObjectClasses.ContainsKey(this.MVObjectType))
             {
-                this.WriteObject(this.CSObject.Project(this.MVObjectType));
+                using (MVObject mvobject = this.CSObject.Project(this.MVObjectType))
+                {
+                    this.WriteObject(mvobject);
+                }
             }
             else
             {
